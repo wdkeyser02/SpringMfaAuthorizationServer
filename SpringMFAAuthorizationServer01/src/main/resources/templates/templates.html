@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Templates</title>
+        <link rel="icon" type="image/x-icon" href="/assets/img/favicon.ico" th:href="@{/assets/img/favicon.ico}"/>
+        <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.css" th:href="@{/webjars/bootstrap/css/bootstrap.css}" />
+        <link th:href="@{/assets/css/style.css}" rel="stylesheet">
+    </head>
+    <body>
+        <div th:fragment="header">
+            <nav class="navbar navbar-default">
+                <div class="container">
+                    <div class="navbar-header">
+                        <img src="/assets/img/spring-logo.png" th:src="@{/assets/img/spring-logo.png}" />
+                    </div>
+                    <div class="navbar-collapse collapse" id="navbar" sec:authorize="isAuthenticated()">
+                        <ul class="nav navbar-nav navbar-right">
+                            <li class="dropdown">
+                                <ul class="dropdown-menu">
+                                    <li sec:authorize="hasRole('USER')"><a id="profile" th:href="@{/profile}">Profile</a></li>
+                                    <li><a id="sign-out" href="javascript:document.logoutForm.submit()">Sign Out</a></li>
+                                </ul>
+                                <form name="logoutForm" th:action="@{/logout}" method="post" th:hidden="true">
+                                    <input hidden type="submit" value="Sign Out"/>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div th:fragment="footer">
+            <footer>
+                <div class="container hidden-print">
+                    <div class="text-center">
+                        <p class="muted credit">Spring Boot Tutorial.</p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>
