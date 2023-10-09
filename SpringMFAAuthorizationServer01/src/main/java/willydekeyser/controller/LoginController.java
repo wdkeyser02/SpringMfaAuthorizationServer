@@ -48,7 +48,7 @@ public class LoginController {
 			"anonymous", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS", "ROLE_TESTERS"));
 	
 	private static Authentication TEMP_AUTHENTICATION = new UsernamePasswordAuthenticationToken(
-			"willy", "willydekeyser", AuthorityUtils.createAuthorityList("ROLE_USER"));
+			"user", "user", AuthorityUtils.createAuthorityList("ROLE_USER"));
 	
 	public LoginController(AuthenticationSuccessHandler authenticationSuccessHandler, AuthenticatorService authenticatorService, AuthenticationStore authenticationStore) {
 		this.authenticationSuccessHandler = authenticationSuccessHandler;
@@ -66,9 +66,7 @@ public class LoginController {
 	public String authenticator(
 			HttpServletRequest request,
 			HttpServletResponse response) {
-		SecurityContext securityContext = SecurityContextHolder.getContext();
-		TEMP_AUTHENTICATION = securityContext.getAuthentication();
-		securityContext = SecurityContextHolder.createEmptyContext();
+		SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 		securityContext.setAuthentication(ANONYMOUS_AUTHENTICATION);
 		SecurityContextHolder.setContext(securityContext);
 		securityContextRepository.saveContext(securityContext, request, response);
@@ -83,7 +81,6 @@ public class LoginController {
 			MultiFactorAuthentication authentication) throws ServletException, IOException {
 		if(this.authenticatorService.check("QDWSM3OYBPGTEVSPB5FKVDM3CSNCWHVK", code) || code.equals("test")) {
 			SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-			securityContext.setAuthentication(TEMP_AUTHENTICATION);
 			SecurityContextHolder.setContext(securityContext);
 			securityContextRepository.saveContext(securityContext, request, response);			
 			this.securityQuestionSuccessHandler.onAuthenticationSuccess(request, response, TEMP_AUTHENTICATION);
@@ -96,9 +93,7 @@ public class LoginController {
 	public String securityQuestion(Model model, 
 			HttpServletRequest request,
 			HttpServletResponse response) {
-		SecurityContext securityContext = SecurityContextHolder.getContext();
-		TEMP_AUTHENTICATION = securityContext.getAuthentication();
-		securityContext = SecurityContextHolder.createEmptyContext();
+		SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 		securityContext.setAuthentication(ANONYMOUS_AUTHENTICATION);
 		SecurityContextHolder.setContext(securityContext);
 		securityContextRepository.saveContext(securityContext, request, response);
