@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
@@ -38,7 +37,6 @@ import org.springframework.security.oauth2.server.authorization.token.JwtEncodin
 import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.ExceptionTranslationFilter;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
@@ -51,9 +49,8 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
-import willydekeyser.security.MultiFactorAuthenticationHandler;
-import willydekeyser.security.MultiFactorTrustResolver;
-import willydekeyser.security.Test;
+import willydekeyser.security.TFAHandler;
+import willydekeyser.service.AuthenticationStore;
 
 @Configuration
 @EnableWebSecurity
@@ -72,13 +69,6 @@ public class SecurityConfig {
 					new LoginUrlAuthenticationEntryPoint("/login"),
 					new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
 				)
-				.withObjectPostProcessor(new ObjectPostProcessor<ExceptionTranslationFilter>() {
-					@Override
-					public <O extends ExceptionTranslationFilter> O postProcess(O filter) {
-						filter.setAuthenticationTrustResolver(new MultiFactorTrustResolver());
-						return filter;
-					}
-				})
 			)
 			
 			.oauth2ResourceServer((resourceServer) -> resourceServer
@@ -89,23 +79,19 @@ public class SecurityConfig {
 
 	@Bean 
 	@Order(2)
-	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, AuthenticationStore authenticationStore)
 			throws Exception {
 		http
 			.authorizeHttpRequests((authorize) -> authorize	
-				.requestMatchers("/assets/**", "/webjars/**", "/login").permitAll()
-				.requestMatchers("/authenticator").permitAll()
-				.requestMatchers("/security-question").permitAll()
+				.requestMatchers("/login").permitAll()
+				.requestMatchers("/authenticator").hasAuthority("ROLE_2FA_REQUIRED")
 				.anyRequest().authenticated()
 			)
 			.formLogin(formLogin -> formLogin
                     .loginPage("/login")
-                    .successHandler(new Test())
-                    //.successHandler(new MultiFactorAuthenticationHandler("/authenticator", "MFA_REQUIRED"))
+                    .successHandler(new TFAHandler(authenticationStore))
                     .failureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"))
-                    )
-            .logout(logout -> logout
-            		.logoutSuccessUrl("/"));
+            );
 
 		return http.build();
 	}

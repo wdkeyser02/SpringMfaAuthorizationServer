@@ -104,8 +104,7 @@ public class LoginController {
 	public void validateAnswer(
 			@RequestParam("answer") String answer,
 			HttpServletRequest request,
-			HttpServletResponse response,
-			MultiFactorAuthentication authentication) throws ServletException, IOException {
+			HttpServletResponse response) throws ServletException, IOException {
 		if(answer.equals("Willy")) {
 			SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
 			securityContext.setAuthentication(authenticationStore.get());

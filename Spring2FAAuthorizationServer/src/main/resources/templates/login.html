@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+	<title>Login</title>
+</head>
+
+<body>
+	<h1>LOGIN</h1>
+	<div>
+		<form method="post" th:action="@{/login}">
+			<label for="username">User Name: </label>
+			<input id="username" type="text" name="username" placeholder="User Name" required autofocus><br><br>
+			<label for="password">Password: </label>
+			<input id="password" type="password" name="password" placeholder="Password" required><br><br>
+			<button id="submit-button" type="submit">Sign in</button>
+		</form>
+	</div>
+</body>
+
+</html>
