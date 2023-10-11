@@ -43,8 +43,7 @@ public class LoginController {
 	}
 		
 	@GetMapping("/authenticator")
-	public String authenticator(HttpServletRequest request,
-			HttpServletResponse response) {
+	public String authenticator() {
 		return "authenticator";
 	}
 
@@ -52,8 +51,7 @@ public class LoginController {
 	public void validateCode(
 			@RequestParam("code") String code,
 			HttpServletRequest request,
-			HttpServletResponse response,
-			Authentication authentication) throws ServletException, IOException {
+			HttpServletResponse response) throws ServletException, IOException {
 		if (code.equals("123")) {
 			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 			return;
