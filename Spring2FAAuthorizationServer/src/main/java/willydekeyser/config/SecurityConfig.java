@@ -185,7 +185,6 @@ public class SecurityConfig {
 				Set<String> authorities = principal.getAuthorities().stream().map(GrantedAuthority::getAuthority)
 						.collect(Collectors.toSet());
 				context.getClaims().claim("authorities", authorities);
-				context.getClaims().claim("details", "Spring Boot Tutorial");
 			}
 		};
 	}
