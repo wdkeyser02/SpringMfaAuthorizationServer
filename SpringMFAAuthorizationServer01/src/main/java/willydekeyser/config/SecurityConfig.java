@@ -51,7 +51,6 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
-import willydekeyser.security.MultiFactorAuthenticationHandler;
 import willydekeyser.security.MultiFactorTrustResolver;
 import willydekeyser.security.Test;
 
