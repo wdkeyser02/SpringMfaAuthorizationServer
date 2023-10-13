@@ -22,14 +22,12 @@ public class MFAHandler implements AuthenticationSuccessHandler {
 	private final AuthenticationSuccessHandler authenticationSuccessHandler;
 	private final String authority;
 	
-		
 	public MFAHandler(String successUrl, String authority) {
 		SimpleUrlAuthenticationSuccessHandler authenticationSuccessHandler =
 	            new SimpleUrlAuthenticationSuccessHandler(successUrl);
 		authenticationSuccessHandler.setAlwaysUseDefaultTargetUrl(true);
 		this.authenticationSuccessHandler = authenticationSuccessHandler;
 		this.authority = authority;
-	
 	}
 
 	@Override
@@ -39,7 +37,6 @@ public class MFAHandler implements AuthenticationSuccessHandler {
 			Authentication authentication) throws IOException, ServletException {
 		saveAuthentication(request, response, new MFAAuthentication(authentication, authority));
 		this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, authentication);
-
 	}
 
 	private void saveAuthentication(
