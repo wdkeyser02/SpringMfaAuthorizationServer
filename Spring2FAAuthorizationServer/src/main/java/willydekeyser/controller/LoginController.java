@@ -48,10 +48,9 @@ public class LoginController {
 	public void validateCode(
 			@RequestParam("code") String code,
 			HttpServletRequest request,
-			HttpServletResponse response,
-			MFAAuthentication authentication) throws ServletException, IOException {
+			HttpServletResponse response) throws ServletException, IOException {
 		if (code.equals("123")) {
-			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response, authentication));
+			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 			return;
 		}
 		authenticatorFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
@@ -59,8 +58,7 @@ public class LoginController {
 		
 	private Authentication getAuthentication(
 			HttpServletRequest request,
-			HttpServletResponse response,
-			MFAAuthentication authentication) {
+			HttpServletResponse response) {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		MFAAuthentication mfaAuthentication = (MFAAuthentication) securityContext.getAuthentication();		
 		securityContext.setAuthentication(mfaAuthentication.getPrimaryAuthentication());
