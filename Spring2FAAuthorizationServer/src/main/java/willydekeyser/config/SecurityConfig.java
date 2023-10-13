@@ -49,8 +49,7 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
-import willydekeyser.security.TFAHandler;
-import willydekeyser.service.AuthenticationStore;
+import willydekeyser.security.MFAHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -70,7 +69,6 @@ public class SecurityConfig {
 					new MediaTypeRequestMatcher(MediaType.TEXT_HTML)
 				)
 			)
-			
 			.oauth2ResourceServer((resourceServer) -> resourceServer
 				.jwt(Customizer.withDefaults()));
 
@@ -79,7 +77,7 @@ public class SecurityConfig {
 
 	@Bean 
 	@Order(2)
-	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http, AuthenticationStore authenticationStore)
+	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http)
 			throws Exception {
 		http
 			.authorizeHttpRequests((authorize) -> authorize	
@@ -89,10 +87,9 @@ public class SecurityConfig {
 			)
 			.formLogin(formLogin -> formLogin
                     .loginPage("/login")
-                    .successHandler(new TFAHandler(authenticationStore))
+                    .successHandler(new MFAHandler("/authenticator", "ROLE_2FA_REQUIRED"))
                     .failureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"))
             );
-
 		return http.build();
 	}
 

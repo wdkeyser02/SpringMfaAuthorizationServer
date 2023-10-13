@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import willydekeyser.service.AuthenticationStore;
+import willydekeyser.security.MFAAuthentication;
 
 @Controller
 public class LoginController {
@@ -28,13 +28,10 @@ public class LoginController {
 	private final AuthenticationFailureHandler authenticatorFailureHandler =
 			new SimpleUrlAuthenticationFailureHandler("/authenticator?error");
 	
-	
 	private final AuthenticationSuccessHandler authenticationSuccessHandler;
-	private final AuthenticationStore authenticationStore;
 	
-	public LoginController(AuthenticationSuccessHandler authenticationSuccessHandler, AuthenticationStore authenticationStore) {
+	public LoginController(AuthenticationSuccessHandler authenticationSuccessHandler) {
 		this.authenticationSuccessHandler = authenticationSuccessHandler;
-		this.authenticationStore = authenticationStore;
 	}
 	
 	@GetMapping("/login")
@@ -51,23 +48,24 @@ public class LoginController {
 	public void validateCode(
 			@RequestParam("code") String code,
 			HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
+			HttpServletResponse response,
+			MFAAuthentication authentication) throws ServletException, IOException {
 		if (code.equals("123")) {
-			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
+			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response, authentication));
 			return;
 		}
 		authenticatorFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
-
 	}
 		
 	private Authentication getAuthentication(
 			HttpServletRequest request,
-			HttpServletResponse response) {
-		Authentication authentication = authenticationStore.getAuthentication();
-		SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-		securityContext.setAuthentication(authentication);
+			HttpServletResponse response,
+			MFAAuthentication authentication) {
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		MFAAuthentication mfaAuthentication = (MFAAuthentication) securityContext.getAuthentication();		
+		securityContext.setAuthentication(mfaAuthentication.getPrimaryAuthentication());
 		SecurityContextHolder.setContext(securityContext);
 		securityContextRepository.saveContext(securityContext, request, response);
-		return authentication;
+		return mfaAuthentication.getPrimaryAuthentication();
 	}
 }
