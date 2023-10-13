@@ -37,6 +37,7 @@ public class MultiFactorAuthenticationHandler implements AuthenticationSuccessHa
 			HttpServletRequest request, 
 			HttpServletResponse response,
 			Authentication authentication) throws IOException, ServletException {
+		System.err.println("onAuthenticationSuccess " + authentication);
 		if (authentication instanceof UsernamePasswordAuthenticationToken) {
 			AuthenticationStore.authentication = (UsernamePasswordAuthenticationToken) authentication;
 			saveAuthentication(request, response, new MultiFactorAuthentication(authentication, authority, true));

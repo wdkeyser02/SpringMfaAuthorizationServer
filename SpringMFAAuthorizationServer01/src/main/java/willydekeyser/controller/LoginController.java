@@ -84,6 +84,7 @@ public class LoginController {
 			SecurityContextHolder.setContext(securityContext);
 			securityContextRepository.saveContext(securityContext, request, response);			
 			this.securityQuestionSuccessHandler.onAuthenticationSuccess(request, response, TEMP_AUTHENTICATION);
+			System.err.println(securityQuestionSuccessHandler);
 			return;
 		}
 		authenticatorFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
@@ -111,6 +112,7 @@ public class LoginController {
 			SecurityContextHolder.setContext(securityContext);
 			securityContextRepository.saveContext(securityContext, request, response);		
 			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, TEMP_AUTHENTICATION);
+			System.err.println(this.authenticationSuccessHandler);
 			return;
 		}
 		securityQuestionFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
