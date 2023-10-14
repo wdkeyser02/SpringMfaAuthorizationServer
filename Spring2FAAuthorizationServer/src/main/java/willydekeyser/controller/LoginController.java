@@ -3,7 +3,9 @@ package willydekeyser.controller;
 import java.io.IOException;
 
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -44,9 +46,19 @@ public class LoginController {
 	public String login() {
 		return "login";
 	}
-		
+	
+	@GetMapping("/registration")
+	public String registration() {
+		return "registration";
+	}
+	
 	@GetMapping("/authenticator")
-	public String authenticator() {
+	public String authenticator(@CurrentSecurityContext SecurityContext context) {
+		MFAAuthentication mfaAuthentication = (MFAAuthentication) context.getAuthentication();
+		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = (UsernamePasswordAuthenticationToken) mfaAuthentication.getPrimaryAuthentication();
+		if (usernamePasswordAuthenticationToken.getName().equals("user3")) {
+			return "redirect:registration";
+		}
 		return "authenticator";
 	}
 
@@ -54,7 +66,14 @@ public class LoginController {
 	public void validateCode(
 			@RequestParam("code") String code,
 			HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
+			HttpServletResponse response,
+			@CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
+		MFAAuthentication mfaAuthentication = (MFAAuthentication) context.getAuthentication();
+		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = (UsernamePasswordAuthenticationToken) mfaAuthentication.getPrimaryAuthentication();
+		if (usernamePasswordAuthenticationToken.getName().equals("user2")) {
+			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
+			return;
+		}
 		if (code.equals("123")) {
 			this.securityQuestionSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 			return;

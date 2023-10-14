@@ -82,7 +82,7 @@ public class SecurityConfig {
 		http
 			.authorizeHttpRequests((authorize) -> authorize	
 				.requestMatchers("/login").permitAll()
-				.requestMatchers("/authenticator").hasAuthority("ROLE_MFA_REQUIRED")
+				.requestMatchers("/registration", "/authenticator").hasAuthority("ROLE_MFA_REQUIRED")
 				.requestMatchers("/security-question").hasAuthority("ROLE_SECURITY_QUESTION_REQUIRED")
 				.anyRequest().authenticated()
 			)
@@ -106,9 +106,12 @@ public class SecurityConfig {
 	
 	@Bean
 	InMemoryUserDetailsManager inMemoryUserDetailsManager() {
-		var user1 = User.withUsername("user").password("{noop}password").roles("USER").build();
-		var user2 = User.withUsername("admin").password("{noop}password").roles("USER", "ADMIN").build();
-		return new InMemoryUserDetailsManager(user1, user2);
+		var user = User.withUsername("user").password("{noop}password").roles("USER").build();
+		var user1 = User.withUsername("user1").password("{noop}password").roles("USER").build();
+		var user2 = User.withUsername("user2").password("{noop}password").roles("USER").build();
+		var user3 = User.withUsername("user3").password("{noop}password").roles("USER").build();
+		var admin = User.withUsername("admin").password("{noop}password").roles("USER", "ADMIN").build();
+		return new InMemoryUserDetailsManager(user, user1, user2, user3, admin);
 	}
 
 	@Bean 

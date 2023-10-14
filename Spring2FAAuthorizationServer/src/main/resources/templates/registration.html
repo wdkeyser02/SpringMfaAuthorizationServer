@@ -2,14 +2,14 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Authenticator</title>
+<title>Registration</title>
 </head>
 <body>
-	<h1>Multi-Factor Authenticator</h1>
+	<h1>Multi-Factor Registration</h1>
 		<div>
 		<div th:if="${param.error}">Invalid code. Please try again.</div>
 		<form method="post" th:action="@{/authenticator}">
-			<label for="code">Code: </label>
+			<label for="code">Registration: </label>
 			<input id="code" type="text" name="code" placeholder="Code" required autofocus><br><br>
 			<button id="submit-button" type="submit">Submit</button>
 		</form>
