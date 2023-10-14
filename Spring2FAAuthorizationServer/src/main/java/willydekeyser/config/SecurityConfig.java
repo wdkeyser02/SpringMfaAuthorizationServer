@@ -82,12 +82,13 @@ public class SecurityConfig {
 		http
 			.authorizeHttpRequests((authorize) -> authorize	
 				.requestMatchers("/login").permitAll()
-				.requestMatchers("/authenticator").hasAuthority("ROLE_2FA_REQUIRED")
+				.requestMatchers("/authenticator").hasAuthority("ROLE_MFA_REQUIRED")
+				.requestMatchers("/security-question").hasAuthority("ROLE_SECURITY_QUESTION_REQUIRED")
 				.anyRequest().authenticated()
 			)
 			.formLogin(formLogin -> formLogin
                     .loginPage("/login")
-                    .successHandler(new MFAHandler("/authenticator", "ROLE_2FA_REQUIRED"))
+                    .successHandler(new MFAHandler("/authenticator", "ROLE_MFA_REQUIRED"))
                     .failureHandler(new SimpleUrlAuthenticationFailureHandler("/login?error"))
             );
 		return http.build();

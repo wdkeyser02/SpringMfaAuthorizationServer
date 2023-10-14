@@ -12,6 +12,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -20,6 +21,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import willydekeyser.security.MFAAuthentication;
+import willydekeyser.security.MFAHandler;
 
 @Controller
 public class LoginController {
@@ -27,6 +29,10 @@ public class LoginController {
 	private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 	private final AuthenticationFailureHandler authenticatorFailureHandler =
 			new SimpleUrlAuthenticationFailureHandler("/authenticator?error");
+	private final AuthenticationFailureHandler securityQuestionFailureHandler =
+			new SimpleUrlAuthenticationFailureHandler("/security-question?error");
+	private final AuthenticationSuccessHandler securityQuestionSuccessHandler =
+			new MFAHandler("/security-question", "ROLE_SECURITY_QUESTION_REQUIRED");
 	
 	private final AuthenticationSuccessHandler authenticationSuccessHandler;
 	
@@ -50,12 +56,30 @@ public class LoginController {
 			HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
 		if (code.equals("123")) {
+			this.securityQuestionSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
+			return;
+		}
+		this.authenticatorFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
+	}
+	
+	@GetMapping("/security-question")
+	public String securityQuestion(Model model) {
+		model.addAttribute("question", "What is your first name? ");
+		return "security-question";
+	}
+	
+	@PostMapping("/security-question")
+	public void validateSecurityQuestion(
+			@RequestParam("answer") String answer,
+			HttpServletRequest request,
+			HttpServletResponse response) throws ServletException, IOException {
+		if (answer.equals("Willy")) {
 			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 			return;
 		}
-		authenticatorFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
+		this.securityQuestionFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
 	}
-		
+	
 	private Authentication getAuthentication(
 			HttpServletRequest request,
 			HttpServletResponse response) {
