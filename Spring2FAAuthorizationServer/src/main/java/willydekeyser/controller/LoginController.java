@@ -55,7 +55,8 @@ public class LoginController {
 	}
 	
 	@GetMapping("/authenticator")
-	public String authenticator(@CurrentSecurityContext SecurityContext context) {
+	public String authenticator(
+			@CurrentSecurityContext SecurityContext context) {
 		if (!getUser(context).mfaRegistered()) {
 			return "redirect:registration";
 		}
@@ -80,7 +81,9 @@ public class LoginController {
 	}
 	
 	@GetMapping("/security-question")
-	public String securityQuestion(@CurrentSecurityContext SecurityContext context, Model model) {
+	public String securityQuestion(
+			@CurrentSecurityContext SecurityContext context, 
+			Model model) {
 		model.addAttribute("question", getUser(context).securityQuestion());
 		return "security-question";
 	}
