@@ -24,6 +24,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import willydekeyser.security.MFAAuthentication;
 import willydekeyser.security.MFAHandler;
+import willydekeyser.user.CustomUserDetails;
+import willydekeyser.user.User;
 
 @Controller
 public class LoginController {
@@ -54,9 +56,7 @@ public class LoginController {
 	
 	@GetMapping("/authenticator")
 	public String authenticator(@CurrentSecurityContext SecurityContext context) {
-		MFAAuthentication mfaAuthentication = (MFAAuthentication) context.getAuthentication();
-		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = (UsernamePasswordAuthenticationToken) mfaAuthentication.getPrimaryAuthentication();
-		if (usernamePasswordAuthenticationToken.getName().equals("user3")) {
+		if (!getUser(context).mfaRegistered()) {
 			return "redirect:registration";
 		}
 		return "authenticator";
@@ -68,13 +68,11 @@ public class LoginController {
 			HttpServletRequest request,
 			HttpServletResponse response,
 			@CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
-		MFAAuthentication mfaAuthentication = (MFAAuthentication) context.getAuthentication();
-		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = (UsernamePasswordAuthenticationToken) mfaAuthentication.getPrimaryAuthentication();
-		if (usernamePasswordAuthenticationToken.getName().equals("user2") && code.equals("123")) {
+		if (getUser(context).securityQuestion().isEmpty()) {
 			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 			return;
 		}
-		if (code.equals("123")) {
+		if (code.equals(getUser(context).secret())) {
 			this.securityQuestionSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 			return;
 		}
@@ -82,8 +80,8 @@ public class LoginController {
 	}
 	
 	@GetMapping("/security-question")
-	public String securityQuestion(Model model) {
-		model.addAttribute("question", "What is your first name? ");
+	public String securityQuestion(@CurrentSecurityContext SecurityContext context, Model model) {
+		model.addAttribute("question", getUser(context).securityQuestion());
 		return "security-question";
 	}
 	
@@ -91,8 +89,9 @@ public class LoginController {
 	public void validateSecurityQuestion(
 			@RequestParam("answer") String answer,
 			HttpServletRequest request,
-			HttpServletResponse response) throws ServletException, IOException {
-		if (answer.equals("Willy")) {
+			HttpServletResponse response,
+			@CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
+		if (answer.equals(getUser(context).answer())) {
 			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 			return;
 		}
@@ -108,5 +107,12 @@ public class LoginController {
 		SecurityContextHolder.setContext(securityContext);
 		securityContextRepository.saveContext(securityContext, request, response);
 		return mfaAuthentication.getPrimaryAuthentication();
+	}
+	
+	private User getUser(SecurityContext context) {
+		MFAAuthentication mfaAuthentication = (MFAAuthentication) context.getAuthentication();
+		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = (UsernamePasswordAuthenticationToken) mfaAuthentication.getPrimaryAuthentication();
+		CustomUserDetails userDetails = (CustomUserDetails) usernamePasswordAuthenticationToken.getPrincipal();
+		return userDetails.getUser();
 	}
 }
