@@ -1,6 +1,7 @@
 package willydekeyser.controller;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,6 +19,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,13 +54,23 @@ public class LoginController {
 	}
 	
 	@GetMapping("/registration")
-	public String registration() {
+	public String registration(Model model) {
+		String base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
+		String keyId = "Spring Boot Tutorial";
+		String code = "";
+		try {
+			code = TimeBasedOneTimePasswordUtil.generateCurrentNumberString(base32Secret);
+		} catch (GeneralSecurityException e) {
+			e.printStackTrace();
+		}
+		System.err.println(code);
+		model.addAttribute("qrImage", TimeBasedOneTimePasswordUtil.qrImageUrl(keyId, base32Secret));
 		return "registration";
 	}
 	
 	@GetMapping("/authenticator")
 	public String authenticator(
-			@CurrentSecurityContext SecurityContext context) {
+			@CurrentSecurityContext SecurityContext context) throws GeneralSecurityException {		
 		if (!getUser(context).mfaRegistered()) {
 			return "redirect:registration";
 		}

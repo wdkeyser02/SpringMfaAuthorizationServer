@@ -7,6 +7,7 @@
 <body>
 	<h1>Multi-Factor Registration</h1>
 		<div>
+		<div><img th:src="${qrImage}"/></div>
 		<div th:if="${param.error}">Invalid code. Please try again.</div>
 		<form method="post" th:action="@{/authenticator}">
 			<label for="code">Registration: </label>
