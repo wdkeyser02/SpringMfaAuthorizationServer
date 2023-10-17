@@ -30,7 +30,8 @@ import willydekeyser.user.User;
 @Controller
 public class LoginController {
 
-	private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+	private final SecurityContextRepository securityContextRepository = 
+			new HttpSessionSecurityContextRepository();
 	private final AuthenticationFailureHandler authenticatorFailureHandler =
 			new SimpleUrlAuthenticationFailureHandler("/authenticator?error");
 	private final AuthenticationFailureHandler securityQuestionFailureHandler =
