@@ -7,10 +7,10 @@ import org.springframework.security.core.GrantedAuthority;
 public record User(
 		String username, 
 		String password,
+		boolean enabled,
 		boolean isAccountNonExpired,
 		boolean isAccountNonLocked,
 		boolean isCredentialsNonExpired,
-		boolean enabled,
 		List<GrantedAuthority> authorities,
 		String securityQuestion,
 		String answer,

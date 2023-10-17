@@ -32,10 +32,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 		return jdbcTemplate.query(sql, rs -> {
 			String username = "";
 			String password = "";
+			boolean enabled = false;
 			boolean isAccountNonExpired = false;
 			boolean isAccountNonLocked = false;
 			boolean isCredentialsNonExpired = false;
-			boolean enabled = false;
 			String securityQuestion = "";
 			String securityAnswer = "";
 			String mfaSecret = "";
@@ -47,10 +47,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 					first = false;
 					username = rs.getString("username");
 					password = rs.getString("password");
+					enabled = rs.getBoolean("enabled");
 					isAccountNonExpired = rs.getBoolean("isAccountNonExpired");
 					isAccountNonLocked = rs.getBoolean("isAccountNonLocked");
 					isCredentialsNonExpired = rs.getBoolean("isCredentialsNonExpired");
-					enabled = rs.getBoolean("enabled");
 					securityQuestion = rs.getString("securityQuestion");
 					securityAnswer = rs.getString("securityAnswer");
 					mfaSecret = rs.getString("mfaSecret");
@@ -59,10 +59,13 @@ public class CustomUserDetailsService implements UserDetailsService {
 				}
 				authorities.add(rs.getString("authority"));
 			}
-			return new CustomUserDetails(
-					new User(username, password, isAccountNonExpired, isAccountNonLocked, isCredentialsNonExpired, enabled, 
-							AuthorityUtils.createAuthorityList(authorities), securityQuestion, securityAnswer, 
-							mfaSecret, mfaEnabled, mfaRegistered));
+			if (userName.equals(username)) {
+				return new CustomUserDetails(
+						new User(username, password, enabled, isAccountNonExpired, isAccountNonLocked, isCredentialsNonExpired, 
+								AuthorityUtils.createAuthorityList(authorities), securityQuestion, securityAnswer, 
+								mfaSecret, mfaEnabled, mfaRegistered));
+			}
+			throw new UsernameNotFoundException("User not found!");
 		}, userName);
 
 	}
