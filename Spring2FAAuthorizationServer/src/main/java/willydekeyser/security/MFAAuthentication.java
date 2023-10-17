@@ -17,4 +17,11 @@ public class MFAAuthentication extends AnonymousAuthenticationToken {
 	public Authentication getPrimaryAuthentication() {
 		return this.primaryAuthentication;
 	}
+
+	@Override
+	public Object getPrincipal() {
+		return this.primaryAuthentication.getPrincipal();
+	}
+	
+	
 }

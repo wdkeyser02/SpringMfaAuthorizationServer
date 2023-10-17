@@ -70,7 +70,7 @@ public class LoginController {
 			@CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
 		MFAAuthentication mfaAuthentication = (MFAAuthentication) context.getAuthentication();
 		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = (UsernamePasswordAuthenticationToken) mfaAuthentication.getPrimaryAuthentication();
-		if (usernamePasswordAuthenticationToken.getName().equals("user2")) {
+		if (usernamePasswordAuthenticationToken.getName().equals("user2") && code.equals("123")) {
 			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 			return;
 		}
