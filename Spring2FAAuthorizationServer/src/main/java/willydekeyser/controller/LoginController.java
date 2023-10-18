@@ -27,6 +27,7 @@ import willydekeyser.security.MFAAuthentication;
 import willydekeyser.security.MFAHandler;
 import willydekeyser.service.AuthenticatorService;
 import willydekeyser.user.CustomUserDetails;
+import willydekeyser.user.CustomUserDetailsService;
 import willydekeyser.user.User;
 
 @Controller
@@ -43,11 +44,18 @@ public class LoginController {
 	
 	private final AuthenticationSuccessHandler authenticationSuccessHandler;
 	private final AuthenticatorService authenticatorService;
+	private final CustomUserDetailsService customUserDetailsService;
 	private String code = "";
+	private String base32Secret = "";
+	private String keyId = "";
 	
-	public LoginController(AuthenticationSuccessHandler authenticationSuccessHandler, AuthenticatorService authenticatorService) {
+	public LoginController(
+			AuthenticationSuccessHandler authenticationSuccessHandler, 
+			AuthenticatorService authenticatorService,
+			CustomUserDetailsService customUserDetailsService) {
 		this.authenticationSuccessHandler = authenticationSuccessHandler;
 		this.authenticatorService = authenticatorService;
+		this.customUserDetailsService = customUserDetailsService;
 	}
 	
 	@GetMapping("/login")
@@ -59,8 +67,8 @@ public class LoginController {
 	public String registration(
 			Model model, 
 			@CurrentSecurityContext SecurityContext context) {
-		String base32Secret = authenticatorService.generateSecret();
-		String keyId = getUser(context).mfaKeyId();
+		base32Secret = authenticatorService.generateSecret();
+		keyId = getUser(context).mfaKeyId();
 		try {
 			code = authenticatorService.getCode(base32Secret);
 		} catch (GeneralSecurityException e) {
@@ -77,7 +85,8 @@ public class LoginController {
 			HttpServletResponse response,
 			@CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
 		if (code.equals(code)) {
-			if (getUser(context).securityQuestionEnabled()) {
+			customUserDetailsService.saveUserInfo(base32Secret, getUser(context).username());
+			if (!getUser(context).securityQuestionEnabled()) {
 				this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 				return;
 			}
@@ -102,8 +111,8 @@ public class LoginController {
 			HttpServletRequest request,
 			HttpServletResponse response,
 			@CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
-		if (code.equals(getUser(context).mfaSecret())) {
-			if (getUser(context).securityQuestionEnabled()) {
+		if (this.authenticatorService.check(getUser(context).mfaSecret(), code)) {
+			if (!getUser(context).securityQuestionEnabled()) {
 				this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 				return;
 			}

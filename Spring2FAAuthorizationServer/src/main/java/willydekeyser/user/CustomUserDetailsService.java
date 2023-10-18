@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
 		List<String> authorities = new ArrayList<>();
 		String sql = """
-				ELECT user.username, user.password, user.enabled, authorities.authority, userinfo.isAccountNonExpired, 
+				SELECT user.username, user.password, user.enabled, authorities.authority, userinfo.isAccountNonExpired, 
 				userinfo.isAccountNonLocked, userinfo.isCredentialsNonExpired, userinfo.securityQuestion, 
 				userinfo.securityAnswer, userinfo.mfaSecret, userinfo.mfaKeyId, userinfo.mfaEnabled, 
 				userinfo.mfaRegistered, userinfo.securityQuestionEnabled  
@@ -75,4 +75,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	}
 
+	public void saveUserInfo(String secret, String username) {
+		String sql = """
+				UPDATE usersinfo SET mfaSecret = ?, mfaRegistered = true WHERE username = ?;
+				""";
+		this.jdbcTemplate.update(sql, secret, username);
+	}
 }
