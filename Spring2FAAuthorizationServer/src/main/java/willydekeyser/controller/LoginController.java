@@ -85,7 +85,7 @@ public class LoginController {
 			HttpServletResponse response,
 			@CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
 		if (code.equals(code)) {
-			customUserDetailsService.saveUserInfoRegistered(base32Secret, getUser(context).username());
+			customUserDetailsService.saveUserInfoMfaRegistered(base32Secret, getUser(context).username());
 			if (!getUser(context).securityQuestionEnabled()) {
 				this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 				return;

@@ -75,7 +75,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
 	}
 
-	public void saveUserInfoRegistered(String secret, String username) {
+	public void saveUserInfoMfaRegistered(String secret, String username) {
 		String sql = """
 				UPDATE usersinfo SET mfaSecret = ?, mfaRegistered = true WHERE username = ?;
 				""";
