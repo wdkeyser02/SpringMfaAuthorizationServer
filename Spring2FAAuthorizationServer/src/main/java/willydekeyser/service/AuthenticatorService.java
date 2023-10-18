@@ -2,13 +2,14 @@ package willydekeyser.service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.SecureRandom;
 
 import org.springframework.security.crypto.codec.Hex;
 import org.springframework.security.crypto.encrypt.BytesEncryptor;
+import org.springframework.stereotype.Service;
 
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 
+@Service
 public class AuthenticatorService {
 
 	private final BytesEncryptor bytesEncryptor;
@@ -31,9 +32,14 @@ public class AuthenticatorService {
     }
     
     public String generateSecret() {
-        SecureRandom secureRandom = new SecureRandom();
-        byte[] bytes = new byte[20];
-        secureRandom.nextBytes(bytes);
-        return new String(Hex.encode(this.bytesEncryptor.encrypt(bytes)));
+        return TimeBasedOneTimePasswordUtil.generateBase32Secret();
+    }
+    
+    public String generateQrImageUrl(String keyId, String base32Secret) {
+        return TimeBasedOneTimePasswordUtil.qrImageUrl(keyId, base32Secret);
+    }
+    
+    public String getCode(String base32Secret) throws GeneralSecurityException {
+    	return TimeBasedOneTimePasswordUtil.generateCurrentNumberString(base32Secret);
     }
 }

@@ -20,13 +20,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import willydekeyser.security.MFAAuthentication;
 import willydekeyser.security.MFAHandler;
+import willydekeyser.service.AuthenticatorService;
 import willydekeyser.user.CustomUserDetails;
 import willydekeyser.user.User;
 
@@ -43,9 +42,12 @@ public class LoginController {
 			new MFAHandler("/security-question", "ROLE_SECURITY_QUESTION_REQUIRED");
 	
 	private final AuthenticationSuccessHandler authenticationSuccessHandler;
+	private final AuthenticatorService authenticatorService;
+	private String code = "";
 	
-	public LoginController(AuthenticationSuccessHandler authenticationSuccessHandler) {
+	public LoginController(AuthenticationSuccessHandler authenticationSuccessHandler, AuthenticatorService authenticatorService) {
 		this.authenticationSuccessHandler = authenticationSuccessHandler;
+		this.authenticatorService = authenticatorService;
 	}
 	
 	@GetMapping("/login")
@@ -54,18 +56,35 @@ public class LoginController {
 	}
 	
 	@GetMapping("/registration")
-	public String registration(Model model) {
-		String base32Secret = TimeBasedOneTimePasswordUtil.generateBase32Secret();
-		String keyId = "Spring Boot Tutorial";
-		String code = "";
+	public String registration(
+			Model model, 
+			@CurrentSecurityContext SecurityContext context) {
+		String base32Secret = authenticatorService.generateSecret();
+		String keyId = getUser(context).mfaKeyId();
 		try {
-			code = TimeBasedOneTimePasswordUtil.generateCurrentNumberString(base32Secret);
+			code = authenticatorService.getCode(base32Secret);
 		} catch (GeneralSecurityException e) {
 			e.printStackTrace();
 		}
 		System.err.println(code);
-		model.addAttribute("qrImage", TimeBasedOneTimePasswordUtil.qrImageUrl(keyId, base32Secret));
+		model.addAttribute("qrImage", authenticatorService.generateQrImageUrl(keyId, base32Secret));
 		return "registration";
+	}
+	
+	@PostMapping("/registration")
+	public void validateRegistration(@RequestParam("code") String code,
+			HttpServletRequest request,
+			HttpServletResponse response,
+			@CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
+		if (code.equals(code)) {
+			if (getUser(context).securityQuestionEnabled()) {
+				this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
+				return;
+			}
+			this.securityQuestionSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
+			return;
+		}
+		this.authenticatorFailureHandler.onAuthenticationFailure(request, response, new BadCredentialsException("bad credentials"));
 	}
 	
 	@GetMapping("/authenticator")
