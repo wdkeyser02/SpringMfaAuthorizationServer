@@ -45,7 +45,7 @@ public class LoginController {
 	private final AuthenticationSuccessHandler authenticationSuccessHandler;
 	private final AuthenticatorService authenticatorService;
 	private final CustomUserDetailsService customUserDetailsService;
-	private String code = "";
+	private String generatedCode = "";
 	private String base32Secret = "";
 	private String keyId = "";
 	
@@ -70,11 +70,11 @@ public class LoginController {
 		base32Secret = authenticatorService.generateSecret();
 		keyId = getUser(context).mfaKeyId();
 		try {
-			code = authenticatorService.getCode(base32Secret);
+			generatedCode = authenticatorService.getCode(base32Secret);
 		} catch (GeneralSecurityException e) {
 			e.printStackTrace();
 		}
-		System.err.println(code);
+		System.err.println(generatedCode);
 		model.addAttribute("qrImage", authenticatorService.generateQrImageUrl(keyId, base32Secret));
 		return "registration";
 	}
@@ -84,7 +84,7 @@ public class LoginController {
 			HttpServletRequest request,
 			HttpServletResponse response,
 			@CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
-		if (code.equals(code)) {
+		if (code.equals(generatedCode)) {
 			customUserDetailsService.saveUserInfoMfaRegistered(base32Secret, getUser(context).username());
 			if (!getUser(context).securityQuestionEnabled()) {
 				this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
