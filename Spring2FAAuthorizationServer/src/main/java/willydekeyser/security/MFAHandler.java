@@ -20,8 +20,10 @@ import willydekeyser.user.CustomUserDetails;
 
 public class MFAHandler implements AuthenticationSuccessHandler {
 
-	private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
-	private final AuthenticationSuccessHandler mfaNotEnabled = new SavedRequestAwareAuthenticationSuccessHandler();
+	private final SecurityContextRepository securityContextRepository = 
+			new HttpSessionSecurityContextRepository();
+	private final AuthenticationSuccessHandler mfaNotEnabled = 
+			new SavedRequestAwareAuthenticationSuccessHandler();
 
 	private final AuthenticationSuccessHandler authenticationSuccessHandler;
 	private final String authority;

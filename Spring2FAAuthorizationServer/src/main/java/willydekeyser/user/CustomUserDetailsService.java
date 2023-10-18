@@ -24,7 +24,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 		String sql = """
 				SELECT user.username, user.password, user.enabled, authorities.authority, userinfo.isAccountNonExpired, 
 				userinfo.isAccountNonLocked, userinfo.isCredentialsNonExpired, userinfo.securityQuestion, 
-				userinfo.securityAnswer, userinfo.mfaSecret, userinfo.mfaEnabled, userinfo.mfaRegistered  
+				userinfo.securityAnswer, userinfo.mfaSecret, userinfo.mfaKeyId, userinfo.mfaEnabled, 
+				userinfo.mfaRegistered, userinfo.securityQuestionEnabled  
 				FROM usersinfo userinfo, users user 
 				LEFT JOIN authorities on user.username = authorities.username 
 				WHERE user.username = userinfo.username AND user.username = ?;
@@ -39,8 +40,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 			String securityQuestion = "";
 			String securityAnswer = "";
 			String mfaSecret = "";
+			String mfaKeyId = "";
 			boolean mfaEnabled = false;
 			boolean mfaRegistered = false;
+			boolean securityQuestionEnabled = false;
 			boolean first = true;
 			while (rs.next()) {
 				if (first) {
@@ -54,8 +57,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 					securityQuestion = rs.getString("securityQuestion");
 					securityAnswer = rs.getString("securityAnswer");
 					mfaSecret = rs.getString("mfaSecret");
+					mfaKeyId = rs.getString("mfaKeyId");
 					mfaEnabled = rs.getBoolean("mfaEnabled");
 					mfaRegistered = rs.getBoolean("mfaRegistered");
+					securityQuestionEnabled = rs.getBoolean("securityQuestionEnabled");
 				}
 				authorities.add(rs.getString("authority"));
 			}
@@ -63,7 +68,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 				return new CustomUserDetails(
 						new User(username, password, enabled, isAccountNonExpired, isAccountNonLocked, isCredentialsNonExpired, 
 								AuthorityUtils.createAuthorityList(authorities), securityQuestion, securityAnswer, 
-								mfaSecret, mfaEnabled, mfaRegistered));
+								mfaSecret, mfaKeyId, mfaEnabled, mfaRegistered, securityQuestionEnabled));
 			}
 			throw new UsernameNotFoundException("User not found!");
 		}, userName);
