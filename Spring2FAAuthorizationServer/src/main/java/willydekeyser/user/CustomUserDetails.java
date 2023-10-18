@@ -52,6 +52,7 @@ public class CustomUserDetails implements UserDetails {
 	public User getUser() {
 		return new User(user.username(), "PROTECTED", user.enabled(), user.isAccountNonExpired(), 
 				user.isAccountNonLocked(), user.isCredentialsNonExpired(), user.authorities(), 
-				user.securityQuestion(), user.answer(), user.secret(), user.mfaEnabled(), user.mfaRegistered());
+				user.securityQuestion(), user.answer(), user.mfaSecret(), user.mfaKeyId(), 
+				user.mfaEnabled(), user.mfaRegistered(), user.securityQuestionEnabled());
 	}
 }

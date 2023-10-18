@@ -83,11 +83,11 @@ public class LoginController {
 			HttpServletRequest request,
 			HttpServletResponse response,
 			@CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
-		if (getUser(context).securityQuestion().isEmpty()) {
-			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
-			return;
-		}
-		if (code.equals(getUser(context).secret())) {
+		if (code.equals(getUser(context).mfaSecret())) {
+			if (getUser(context).securityQuestionEnabled()) {
+				this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
+				return;
+			}
 			this.securityQuestionSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 			return;
 		}
@@ -128,7 +128,8 @@ public class LoginController {
 	
 	private User getUser(SecurityContext context) {
 		MFAAuthentication mfaAuthentication = (MFAAuthentication) context.getAuthentication();
-		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = (UsernamePasswordAuthenticationToken) mfaAuthentication.getPrimaryAuthentication();
+		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = 
+				(UsernamePasswordAuthenticationToken) mfaAuthentication.getPrimaryAuthentication();
 		CustomUserDetails userDetails = (CustomUserDetails) usernamePasswordAuthenticationToken.getPrincipal();
 		return userDetails.getUser();
 	}

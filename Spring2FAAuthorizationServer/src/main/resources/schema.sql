@@ -15,8 +15,10 @@ create table if not exists usersinfo
 	securityQuestion varchar(200) not null,
 	securityAnswer varchar(200) not null,
 	mfaSecret varchar(200) not null,
+	mfaKeyId varchar(200) not null,
 	mfaEnabled boolean not null,
 	mfaRegistered boolean not null,
+	securityQuestionEnabled boolean not null,
 	constraint fk_usersinfo_users foreign key (username) references users (username)
 );
 

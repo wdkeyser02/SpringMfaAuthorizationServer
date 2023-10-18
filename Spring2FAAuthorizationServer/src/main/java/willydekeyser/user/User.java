@@ -14,7 +14,9 @@ public record User(
 		List<GrantedAuthority> authorities,
 		String securityQuestion,
 		String answer,
-		String secret,
+		String mfaSecret,
+		String mfaKeyId,
 		boolean mfaEnabled,
-		boolean mfaRegistered
+		boolean mfaRegistered,
+		boolean securityQuestionEnabled
 		) {}
