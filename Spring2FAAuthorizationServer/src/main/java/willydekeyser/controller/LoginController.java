@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.CurrentSecurityContext;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -45,6 +46,7 @@ public class LoginController {
 	private final AuthenticationSuccessHandler authenticationSuccessHandler;
 	private final AuthenticatorService authenticatorService;
 	private final CustomUserDetailsService customUserDetailsService;
+	private final PasswordEncoder passwordEncoder;
 	private String generatedCode = "";
 	private String base32Secret = "";
 	private String keyId = "";
@@ -52,10 +54,12 @@ public class LoginController {
 	public LoginController(
 			AuthenticationSuccessHandler authenticationSuccessHandler, 
 			AuthenticatorService authenticatorService,
-			CustomUserDetailsService customUserDetailsService) {
+			CustomUserDetailsService customUserDetailsService,
+			PasswordEncoder passwordEncoder) {
 		this.authenticationSuccessHandler = authenticationSuccessHandler;
 		this.authenticatorService = authenticatorService;
 		this.customUserDetailsService = customUserDetailsService;
+		this.passwordEncoder = passwordEncoder;
 	}
 	
 	@GetMapping("/login")
@@ -136,7 +140,7 @@ public class LoginController {
 			HttpServletRequest request,
 			HttpServletResponse response,
 			@CurrentSecurityContext SecurityContext context) throws ServletException, IOException {
-		if (answer.equals(getUser(context).answer())) {
+		if (this.passwordEncoder.matches(answer, getUser(context).answer())) {
 			this.authenticationSuccessHandler.onAuthenticationSuccess(request, response, getAuthentication(request, response));
 			return;
 		}

@@ -4,10 +4,15 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Base64;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -18,7 +23,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.encrypt.AesBytesEncryptor;
+import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.keygen.BytesKeyGenerator;
+import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -54,7 +63,7 @@ import willydekeyser.user.CustomUserDetailsService;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
+	
 	@Bean 
 	@Order(1)
 	SecurityFilterChain authorizationServerSecurityFilterChain(HttpSecurity http)
@@ -105,9 +114,16 @@ public class SecurityConfig {
     }
 	
 	@Bean
-	CustomUserDetailsService customUserDetailsService(JdbcTemplate jdbcTemplate) {
-		return new CustomUserDetailsService(jdbcTemplate);
+	CustomUserDetailsService customUserDetailsService(JdbcTemplate jdbcTemplate, BytesEncryptor bytesEncryptor) {
+		return new CustomUserDetailsService(jdbcTemplate, bytesEncryptor);
 	}
+	
+	@Bean
+    BytesEncryptor bytesEncryptor(@Value("${jwt.secret.key}") String secret) {
+        SecretKey secretKey = new SecretKeySpec(Base64.getDecoder().decode(secret.trim()), "AES");
+        BytesKeyGenerator ivGenerator = KeyGenerators.secureRandom(12);
+        return new AesBytesEncryptor(secretKey, ivGenerator, AesBytesEncryptor.CipherAlgorithm.GCM);
+    }
 	
 	@Bean 
 	RegisteredClientRepository registeredClientRepository() {

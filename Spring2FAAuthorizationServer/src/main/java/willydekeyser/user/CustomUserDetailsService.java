@@ -1,5 +1,6 @@
 package willydekeyser.user;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,14 +9,18 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.codec.Hex;
+import org.springframework.security.crypto.encrypt.BytesEncryptor;
 
 
 public class CustomUserDetailsService implements UserDetailsService {
 
 	private final JdbcTemplate jdbcTemplate;
+	private final BytesEncryptor bytesEncryptor;
 	
-	public CustomUserDetailsService(JdbcTemplate jdbcTemplate) {
+	public CustomUserDetailsService(JdbcTemplate jdbcTemplate, BytesEncryptor bytesEncryptor) {
 		this.jdbcTemplate = jdbcTemplate;
+		this.bytesEncryptor = bytesEncryptor;
 	}
 
 	@Override
@@ -76,9 +81,10 @@ public class CustomUserDetailsService implements UserDetailsService {
 	}
 
 	public void saveUserInfoMfaRegistered(String secret, String username) {
+		String encryptedSecret = new String(Hex.encode(this.bytesEncryptor.encrypt(secret.getBytes(StandardCharsets.UTF_8))));
 		String sql = """
 				UPDATE usersinfo SET mfaSecret = ?, mfaRegistered = true WHERE username = ?;
 				""";
-		this.jdbcTemplate.update(sql, secret, username);
+		this.jdbcTemplate.update(sql, encryptedSecret, username);
 	}
 }
